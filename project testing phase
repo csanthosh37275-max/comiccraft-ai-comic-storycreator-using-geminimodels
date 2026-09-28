@@ -1,0 +1,107 @@
+## Project Testing Phase – ComicCraft-AI
+
+**Project Title:** *ComicCraft-AI: Comic Story Creator Using Gemini Models*
+
+The **Project Testing Phase** is carried out to ensure that ComicCraft-AI works correctly, generates appropriate comic content, and provides a smooth user experience.
+
+### 1. Functional Testing
+
+Each feature of the application is tested to check whether it performs its intended function.
+
+* Entering a comic story idea
+* Selecting genre and style
+* Generating a story using Gemini
+* Creating characters
+* Generating scenes and dialogues
+* Editing and regenerating content
+* Previewing the comic
+* Saving or exporting the comic
+
+### 2. Gemini API Testing
+
+The connection between ComicCraft-AI and the Gemini model is tested to ensure that:
+
+* User prompts are sent correctly.
+* Gemini responses are received correctly.
+* Generated content is displayed properly.
+* API errors are handled appropriately.
+* Empty or invalid prompts are handled safely.
+
+### 3. User Interface Testing
+
+The interface is tested for:
+
+* Proper buttons and input fields.
+* Easy navigation.
+* Correct display of generated content.
+* Responsive layout.
+* Clear error messages.
+
+### 4. Content Testing
+
+The generated comic is checked for:
+
+* Story consistency.
+* Character consistency.
+* Relevant dialogues.
+* Proper scene sequence.
+* Appropriate formatting.
+* Unwanted or irrelevant content.
+
+### 5. Performance Testing
+
+The application is tested to check:
+
+* Response time during story generation.
+* Application loading speed.
+* Handling of multiple requests.
+* Database response time.
+
+### 6. Error Testing
+
+Different incorrect inputs are tested, such as:
+
+* Empty story prompt.
+* Very short or unclear prompts.
+* Invalid input.
+* Network failure.
+* Gemini API failure.
+
+The system should display suitable messages instead of crashing.
+
+### 7. Test Case Example
+
+| Test Case          | Input                               | Expected Result                    |
+| ------------------ | ----------------------------------- | ---------------------------------- |
+| Story Generation   | “A girl discovers a magical forest” | Gemini generates a comic story     |
+| Character Creation | Fantasy story                       | Characters are generated           |
+| Dialogue           | Generated scene                     | Suitable dialogue is produced      |
+| Empty Input        | No story idea                       | Error/request message is displayed |
+| Regeneration       | Regenerate scene                    | New version of scene is generated  |
+| Save               | Completed comic                     | Comic is saved successfully        |
+
+### 8. Final Testing
+
+After testing individual modules, the complete application is tested as a single system.
+
+```text
+User Input
+    ↓
+Story Generation
+    ↓
+Character Generation
+    ↓
+Scene Generation
+    ↓
+Dialogue Generation
+    ↓
+Comic Panel Creation
+    ↓
+Preview
+    ↓
+Save / Export
+```
+
+### 9. Testing Outcome
+
+The testing phase ensures that **ComicCraft-AI** functions correctly, communicates properly with Gemini models, handles errors, and provides users with a reliable and user-friendly comic story creation experience.
