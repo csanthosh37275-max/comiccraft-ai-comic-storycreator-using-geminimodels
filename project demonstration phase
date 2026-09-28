@@ -1,0 +1,93 @@
+## Project Demonstration Phase – ComicCraft-AI
+
+**Project Title:** *ComicCraft-AI: Comic Story Creator Using Gemini Models*
+
+The **Project Demonstration Phase** is the final stage where the completed ComicCraft-AI system is presented and demonstrated to the project guide, evaluators, or users. The main purpose is to show how the application works from user input to final comic story generation.
+
+### 1. Introduction
+
+The project team briefly introduces **ComicCraft-AI**, its purpose, objectives, and the use of **Gemini models** for AI-powered comic story creation.
+
+### 2. Demonstration of User Interface
+
+The application interface is displayed and the main features are explained:
+
+* Story idea input
+* Genre selection
+* Story generation button
+* Character and scene sections
+* Dialogue section
+* Edit/regenerate options
+* Comic preview
+* Save/export option
+
+### 3. Live Story Generation
+
+A sample prompt is entered into the application.
+
+**Example:**
+
+> “Create a fantasy comic about a girl who discovers a magical forest.”
+
+The system sends the prompt to the Gemini model and receives the generated response.
+
+### 4. Demonstration of AI Features
+
+The following features are demonstrated:
+
+**Story Generation:**
+Gemini expands the user's idea into a structured story.
+
+**Character Generation:**
+The system creates character names, roles, personalities, and descriptions.
+
+**Scene Generation:**
+The story is divided into different scenes or comic panels.
+
+**Dialogue Generation:**
+Suitable dialogue is generated for the characters.
+
+### 5. Editing and Regeneration
+
+The user demonstrates how generated content can be modified. If a scene or dialogue is not suitable, it can be edited or regenerated.
+
+### 6. Comic Preview
+
+The generated story is displayed in an organized comic format.
+
+```text
+User Idea
+    ↓
+Gemini AI
+    ↓
+Story
+    ↓
+Characters
+    ↓
+Scenes
+    ↓
+Dialogues
+    ↓
+Comic Panels
+    ↓
+Final Comic
+```
+
+### 7. Output Demonstration
+
+The final output is shown to the evaluators. The demonstration explains how the original user idea has been transformed into a complete comic story using AI.
+
+### 8. Questions and Answers
+
+After the demonstration, the project team explains:
+
+* Why Gemini models were selected.
+* How the Gemini API is integrated.
+* How prompts are processed.
+* How errors are handled.
+* What technologies were used.
+* What future improvements are possible.
+
+### 9. Demonstration Outcome
+
+The demonstration successfully presents the complete workflow of **ComicCraft-AI**, from entering a simple creative idea to generating **stories, characters, scenes, dialogues, and comic panels** using Gemini models. It helps evaluators understand the practical functionality and usefulness of the developed system.
