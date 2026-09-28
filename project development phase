@@ -1,0 +1,1530 @@
+# ============================================================
+# COMICCRAFT - AI COMIC STORY CREATOR USING GEMINI
+# Single-file version
+# ============================================================
+#
+# INSTALL:
+# pip install fastapi uvicorn python-multipart python-dotenv google-genai
+#
+# RUN:
+# python main.py
+#
+# OPEN:
+# http://127.0.0.1:8000
+#
+# Add your Gemini API key below.
+# ============================================================
+
+import os
+import json
+import html
+from typing import List
+
+from fastapi import FastAPI, Form
+from fastapi.responses import HTMLResponse
+from google import genai
+from google.genai import types
+
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+# Put your Gemini API key here
+GEMINI_API_KEY = os.getenv(
+    "GEMINI_API_KEY",
+    "PASTE_YOUR_GEMINI_API_KEY_HERE"
+)
+
+# Gemini models
+FLASH_MODEL = "gemini-2.5-flash"
+PRO_MODEL = "gemini-2.5-pro"
+
+
+# ============================================================
+# GEMINI CLIENT
+# ============================================================
+
+if GEMINI_API_KEY != "PASTE_YOUR_GEMINI_API_KEY_HERE":
+    client = genai.Client(api_key=GEMINI_API_KEY)
+else:
+    client = None
+
+
+# ============================================================
+# FASTAPI APPLICATION
+# ============================================================
+
+app = FastAPI(
+    title="ComicCraft - AI Comic Story Creator",
+    description="AI Comic Story Creator using Gemini models",
+    version="1.0.0"
+)
+
+
+# ============================================================
+# HTML PAGE
+# ============================================================
+
+HTML_PAGE = """
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>ComicCraft AI</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    background:
+        linear-gradient(
+            135deg,
+            #fff1f2,
+            #f5f3ff,
+            #eff6ff
+        );
+
+    min-height: 100vh;
+
+    color: #222;
+}
+
+
+.header {
+
+    background: #111827;
+
+    color: white;
+
+    padding: 25px;
+
+    text-align: center;
+
+    box-shadow:
+        0 4px 15px rgba(0,0,0,0.15);
+
+}
+
+
+.header h1 {
+
+    margin: 0;
+
+    font-size: 38px;
+
+}
+
+
+.header p {
+
+    margin-top: 8px;
+
+    color: #d1d5db;
+
+}
+
+
+.container {
+
+    width: 90%;
+
+    max-width: 1000px;
+
+    margin: 40px auto;
+
+}
+
+
+.card {
+
+    background: white;
+
+    border-radius: 20px;
+
+    padding: 30px;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.10);
+
+}
+
+
+label {
+
+    display: block;
+
+    margin-top: 18px;
+
+    margin-bottom: 7px;
+
+    font-weight: bold;
+
+}
+
+
+input,
+textarea,
+select {
+
+    width: 100%;
+
+    padding: 13px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 10px;
+
+    font-size: 15px;
+
+}
+
+
+textarea {
+
+    min-height: 130px;
+
+    resize: vertical;
+
+}
+
+
+button {
+
+    margin-top: 25px;
+
+    width: 100%;
+
+    padding: 15px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: #7c3aed;
+
+    color: white;
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+
+button:hover {
+
+    background: #6d28d9;
+
+}
+
+
+.info {
+
+    background: #f3f4f6;
+
+    padding: 15px;
+
+    margin-top: 20px;
+
+    border-radius: 10px;
+
+}
+
+
+.error {
+
+    background: #fee2e2;
+
+    color: #991b1b;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    margin-bottom: 20px;
+
+}
+
+
+.comic-title {
+
+    text-align: center;
+
+    font-size: 32px;
+
+    margin-bottom: 30px;
+
+}
+
+
+.panel {
+
+    border: 4px solid #111827;
+
+    border-radius: 15px;
+
+    margin-bottom: 30px;
+
+    overflow: hidden;
+
+    background: white;
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,0.12);
+
+}
+
+
+.panel-header {
+
+    background: #111827;
+
+    color: white;
+
+    padding: 12px;
+
+    font-weight: bold;
+
+}
+
+
+.panel-content {
+
+    padding: 20px;
+
+}
+
+
+.scene {
+
+    background: #f9fafb;
+
+    border-radius: 10px;
+
+    padding: 15px;
+
+    margin-bottom: 15px;
+
+}
+
+
+.caption {
+
+    background: #fef3c7;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    margin-top: 10px;
+
+}
+
+
+.dialogue {
+
+    background: #dbeafe;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    margin-top: 10px;
+
+}
+
+
+.narration {
+
+    background: #f3e8ff;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    margin-top: 10px;
+
+}
+
+
+.download {
+
+    display: block;
+
+    text-align: center;
+
+    background: #059669;
+
+    color: white;
+
+    text-decoration: none;
+
+    padding: 15px;
+
+    border-radius: 12px;
+
+    margin-top: 20px;
+
+}
+
+
+.back {
+
+    display: block;
+
+    text-align: center;
+
+    margin-top: 20px;
+
+    color: #7c3aed;
+
+    text-decoration: none;
+
+}
+
+
+.footer {
+
+    text-align: center;
+
+    padding: 30px;
+
+    color: #6b7280;
+
+}
+
+
+@media(max-width:600px) {
+
+    .header h1 {
+        font-size: 28px;
+    }
+
+    .container {
+        width: 95%;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="header">
+
+    <h1>🎨 ComicCraft AI</h1>
+
+    <p>AI Comic Story Creator using Gemini Models</p>
+
+</div>
+
+
+<div class="container">
+
+<div class="card">
+
+<h2>Create Your Comic</h2>
+
+<form action="/generate" method="post">
+
+<label>Story Idea</label>
+
+<textarea
+    name="prompt"
+    placeholder="Example: A young girl discovers a magical forest..."
+    required
+></textarea>
+
+
+<label>Main Character</label>
+
+<input
+    type="text"
+    name="character"
+    placeholder="Example: Maya"
+    required
+>
+
+
+<label>Setting</label>
+
+<input
+    type="text"
+    name="setting"
+    placeholder="Example: A magical forest"
+    required
+>
+
+
+<label>Tone</label>
+
+<select name="tone">
+
+<option value="adventure">
+Adventure
+</option>
+
+<option value="funny">
+Funny
+</option>
+
+<option value="fantasy">
+Fantasy
+</option>
+
+<option value="mystery">
+Mystery
+</option>
+
+<option value="friendship">
+Friendship
+</option>
+
+<option value="science fiction">
+Science Fiction
+</option>
+
+</select>
+
+
+<label>Art Style</label>
+
+<select name="art_style">
+
+<option value="comic book">
+Comic Book
+</option>
+
+<option value="cartoon">
+Cartoon
+</option>
+
+<option value="manga">
+Manga
+</option>
+
+<option value="fantasy illustration">
+Fantasy Illustration
+</option>
+
+<option value="watercolor">
+Watercolor
+</option>
+
+</select>
+
+
+<label>Number of Panels</label>
+
+<select name="panels">
+
+<option value="3">
+3 Panels
+</option>
+
+<option value="4">
+4 Panels
+</option>
+
+<option value="5">
+5 Panels
+</option>
+
+<option value="6">
+6 Panels
+</option>
+
+<option value="7">
+7 Panels
+</option>
+
+<option value="8">
+8 Panels
+</option>
+
+</select>
+
+
+<button type="submit">
+✨ Generate Comic
+</button>
+
+</form>
+
+
+<div class="info">
+
+<strong>How ComicCraft works:</strong>
+
+<br><br>
+
+1. Enter your story idea.
+
+<br>
+
+2. Gemini Flash creates the comic outline.
+
+<br>
+
+3. Gemini Pro expands the story.
+
+<br>
+
+4. Each panel receives narration and dialogue.
+
+<br>
+
+5. The final comic is displayed here.
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="footer">
+
+ComicCraft AI © 2026
+
+</div>
+
+</body>
+
+</html>
+"""
+
+
+# ============================================================
+# HOME ROUTE
+# ============================================================
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+
+    return HTML_PAGE
+
+
+# ============================================================
+# GEMINI FLASH
+# OUTLINE GENERATION
+# ============================================================
+
+def generate_outline(
+    prompt: str,
+    character: str,
+    setting: str,
+    tone: str,
+    panels: int
+):
+
+    if client is None:
+
+        raise Exception(
+            "Gemini API key is missing. "
+            "Add your API key in GEMINI_API_KEY."
+        )
+
+
+    instruction = f"""
+
+You are an expert comic story planner.
+
+Create an outline for an AI-generated comic.
+
+Story idea:
+{prompt}
+
+Main character:
+{character}
+
+Setting:
+{setting}
+
+Tone:
+{tone}
+
+Number of panels:
+{panels}
+
+Return ONLY valid JSON.
+
+Use exactly this structure:
+
+{{
+    "title": "Comic title",
+    "panels": [
+        {{
+            "panel_number": 1,
+            "scene": "Description of the scene",
+            "action": "What happens",
+            "emotion": "Character emotion"
+        }}
+    ]
+}}
+
+Create exactly {panels} panels.
+
+"""
+
+
+    response = client.models.generate_content(
+
+        model=FLASH_MODEL,
+
+        contents=instruction,
+
+        config=types.GenerateContentConfig(
+
+            temperature=0.8,
+
+            response_mime_type="application/json"
+
+        )
+
+    )
+
+
+    text = response.text.strip()
+
+    try:
+
+        data = json.loads(text)
+
+    except json.JSONDecodeError:
+
+        start = text.find("{")
+
+        end = text.rfind("}")
+
+        if start == -1 or end == -1:
+
+            raise Exception(
+                "Gemini returned invalid JSON."
+            )
+
+        data = json.loads(
+            text[start:end + 1]
+        )
+
+
+    return data
+
+
+# ============================================================
+# GEMINI PRO
+# STORY GENERATION
+# ============================================================
+
+def generate_story(
+    prompt: str,
+    character: str,
+    setting: str,
+    tone: str,
+    outline: dict
+):
+
+    if client is None:
+
+        raise Exception(
+            "Gemini API key is missing."
+        )
+
+
+    instruction = f"""
+
+You are an expert comic book writer.
+
+Create a complete comic story using the outline below.
+
+Original idea:
+{prompt}
+
+Main character:
+{character}
+
+Setting:
+{setting}
+
+Tone:
+{tone}
+
+Outline:
+{json.dumps(outline, indent=2)}
+
+Return ONLY valid JSON.
+
+Use exactly this structure:
+
+{{
+    "title": "Comic title",
+    "panels": [
+        {{
+            "panel_number": 1,
+            "scene": "Detailed visual description",
+            "caption": "Short comic caption",
+            "narration": "Narrator text",
+            "dialogue": [
+                "Character: Dialogue"
+            ],
+            "emotion": "Emotion"
+        }}
+    ]
+}}
+
+Keep the dialogue short and natural.
+
+Create one story panel for every outline panel.
+
+"""
+
+
+    response = client.models.generate_content(
+
+        model=PRO_MODEL,
+
+        contents=instruction,
+
+        config=types.GenerateContentConfig(
+
+            temperature=0.9,
+
+            response_mime_type="application/json"
+
+        )
+
+    )
+
+
+    text = response.text.strip()
+
+
+    try:
+
+        data = json.loads(text)
+
+    except json.JSONDecodeError:
+
+        start = text.find("{")
+
+        end = text.rfind("}")
+
+        if start == -1 or end == -1:
+
+            raise Exception(
+                "Gemini returned invalid story JSON."
+            )
+
+        data = json.loads(
+            text[start:end + 1]
+        )
+
+
+    return data
+
+
+# ============================================================
+# ESCAPE HTML
+# ============================================================
+
+def safe(value):
+
+    if value is None:
+
+        return ""
+
+    return html.escape(str(value))
+
+
+# ============================================================
+# COMIC RESULT PAGE
+# ============================================================
+
+def comic_page(story: dict, art_style: str):
+
+    title = safe(
+        story.get(
+            "title",
+            "ComicCraft Story"
+        )
+    )
+
+
+    panels = story.get(
+        "panels",
+        []
+    )
+
+
+    output = """
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>ComicCraft Result</title>
+
+<style>
+
+body {
+
+    margin: 0;
+
+    background: #f3f4f6;
+
+    font-family: Arial, sans-serif;
+
+}
+
+.container {
+
+    width: 90%;
+
+    max-width: 1000px;
+
+    margin: 30px auto;
+
+}
+
+.title {
+
+    text-align: center;
+
+    font-size: 36px;
+
+    margin-bottom: 30px;
+
+}
+
+.panel {
+
+    background: white;
+
+    border: 5px solid #111827;
+
+    border-radius: 15px;
+
+    overflow: hidden;
+
+    margin-bottom: 30px;
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,0.15);
+
+}
+
+.panel-title {
+
+    background: #111827;
+
+    color: white;
+
+    padding: 15px;
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+}
+
+.content {
+
+    padding: 20px;
+
+}
+
+.scene {
+
+    background: #f9fafb;
+
+    border-radius: 10px;
+
+    padding: 20px;
+
+    font-size: 18px;
+
+    line-height: 1.6;
+
+}
+
+.caption {
+
+    background: #fef3c7;
+
+    padding: 15px;
+
+    margin-top: 15px;
+
+    border-radius: 10px;
+
+}
+
+.narration {
+
+    background: #ede9fe;
+
+    padding: 15px;
+
+    margin-top: 15px;
+
+    border-radius: 10px;
+
+}
+
+.dialogue {
+
+    background: #dbeafe;
+
+    padding: 15px;
+
+    margin-top: 15px;
+
+    border-radius: 10px;
+
+}
+
+.emotion {
+
+    background: #dcfce7;
+
+    padding: 15px;
+
+    margin-top: 15px;
+
+    border-radius: 10px;
+
+}
+
+.button {
+
+    display: block;
+
+    text-align: center;
+
+    padding: 15px;
+
+    background: #7c3aed;
+
+    color: white;
+
+    text-decoration: none;
+
+    border-radius: 10px;
+
+    margin-top: 15px;
+
+}
+
+.back {
+
+    background: #374151;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="title">
+
+🎨 """
+
+    output += title
+
+    output += """
+
+</div>
+
+"""
+
+
+    for index, panel in enumerate(panels):
+
+        number = panel.get(
+            "panel_number",
+            index + 1
+        )
+
+        scene = safe(
+            panel.get(
+                "scene",
+                ""
+            )
+        )
+
+        caption = safe(
+            panel.get(
+                "caption",
+                ""
+            )
+        )
+
+        narration = safe(
+            panel.get(
+                "narration",
+                ""
+            )
+        )
+
+        emotion = safe(
+            panel.get(
+                "emotion",
+                ""
+            )
+        )
+
+
+        dialogues = panel.get(
+            "dialogue",
+            []
+        )
+
+
+        if not isinstance(
+            dialogues,
+            list
+        ):
+
+            dialogues = [
+                str(dialogues)
+            ]
+
+
+        dialogue_html = ""
+
+        for dialogue in dialogues:
+
+            dialogue_html += (
+                "<p>💬 "
+                + safe(dialogue)
+                + "</p>"
+            )
+
+
+        output += f"""
+
+<div class="panel">
+
+<div class="panel-title">
+
+Panel {safe(number)}
+
+</div>
+
+<div class="content">
+
+<div class="scene">
+
+<strong>🎬 Scene</strong>
+
+<br><br>
+
+{scene}
+
+</div>
+
+<div class="caption">
+
+<strong>📝 Caption</strong>
+
+<br><br>
+
+{caption}
+
+</div>
+
+<div class="narration">
+
+<strong>📖 Narration</strong>
+
+<br><br>
+
+{narration}
+
+</div>
+
+<div class="dialogue">
+
+<strong>💬 Dialogue</strong>
+
+{dialogue_html}
+
+</div>
+
+<div class="emotion">
+
+<strong>😊 Emotion:</strong>
+
+{emotion}
+
+</div>
+
+</div>
+
+</div>
+
+"""
+
+
+    output += """
+
+<a class="button back"
+   href="/">
+
+← Create Another Comic
+
+</a>
+
+</div>
+
+</body>
+
+</html>
+
+"""
+
+
+    return output
+
+
+# ============================================================
+# GENERATE COMIC
+# ============================================================
+
+@app.post(
+    "/generate",
+    response_class=HTMLResponse
+)
+
+def generate(
+
+    prompt: str = Form(...),
+
+    character: str = Form(...),
+
+    setting: str = Form(...),
+
+    tone: str = Form(...),
+
+    art_style: str = Form(...),
+
+    panels: int = Form(...)
+
+):
+
+    try:
+
+        # -----------------------------
+        # STEP 1
+        # Gemini Flash
+        # -----------------------------
+
+        outline = generate_outline(
+
+            prompt=prompt,
+
+            character=character,
+
+            setting=setting,
+
+            tone=tone,
+
+            panels=panels
+
+        )
+
+
+        # -----------------------------
+        # STEP 2
+        # Gemini Pro
+        # -----------------------------
+
+        story = generate_story(
+
+            prompt=prompt,
+
+            character=character,
+
+            setting=setting,
+
+            tone=tone,
+
+            outline=outline
+
+        )
+
+
+        # -----------------------------
+        # STEP 3
+        # Display result
+        # -----------------------------
+
+        return HTMLResponse(
+
+            comic_page(
+                story,
+                art_style
+            )
+
+        )
+
+
+    except Exception as e:
+
+        error = safe(str(e))
+
+
+        return HTMLResponse(
+
+            f"""
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>ComicCraft Error</title>
+
+<style>
+
+body {{
+
+    font-family: Arial;
+
+    background: #f3f4f6;
+
+    padding: 50px;
+
+}}
+
+.box {{
+
+    max-width: 700px;
+
+    margin: auto;
+
+    background: white;
+
+    padding: 30px;
+
+    border-radius: 15px;
+
+    box-shadow:
+        0 5px 20px rgba(0,0,0,0.1);
+
+}}
+
+.error {{
+
+    background: #fee2e2;
+
+    color: #991b1b;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+}}
+
+a {{
+
+    display: block;
+
+    margin-top: 20px;
+
+    text-align: center;
+
+    padding: 15px;
+
+    background: #7c3aed;
+
+    color: white;
+
+    text-decoration: none;
+
+    border-radius: 10px;
+
+}}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h1>⚠️ ComicCraft Error</h1>
+
+<div class="error">
+
+{error}
+
+</div>
+
+<a href="/">
+
+← Go Back
+
+</a>
+
+</div>
+
+</body>
+
+</html>
+
+""",
+
+            status_code=500
+
+        )
+
+
+# ============================================================
+# JSON API
+# ============================================================
+
+@app.post("/generate-comic/json")
+
+def generate_json(
+
+    prompt: str,
+
+    character: str,
+
+    setting: str,
+
+    tone: str = "adventure",
+
+    panels: int = 4
+
+):
+
+    outline = generate_outline(
+
+        prompt,
+        character,
+        setting,
+        tone,
+        panels
+
+    )
+
+
+    story = generate_story(
+
+        prompt,
+        character,
+        setting,
+        tone,
+        outline
+
+    )
+
+
+    return {
+
+        "success": True,
+
+        "title": story.get(
+            "title",
+            "ComicCraft"
+        ),
+
+        "outline": outline,
+
+        "story": story
+
+    }
+
+
+# ============================================================
+# HEALTH CHECK
+# ============================================================
+
+@app.get("/health")
+
+def health():
+
+    return {
+
+        "status": "running",
+
+        "project":
+            "ComicCraft AI Comic Story Creator",
+
+        "gemini_configured":
+            client is not None
+
+    }
+
+
+# ============================================================
+# MAIN
+# ============================================================
+
+if __name__ == "__main__":
+
+    import uvicorn
+
+    print()
+    print("=" * 60)
+    print("       COMICCRAFT - AI COMIC STORY CREATOR")
+    print("=" * 60)
+    print()
+    print("Server starting...")
+    print()
+    print("Open this in your browser:")
+    print()
+    print("http://127.0.0.1:8000")
+    print()
+    print("=" * 60)
+    print()
+
+    uvicorn.run(
+
+        app,
+
+        host="127.0.0.1",
+
+        port=8000
+
+    )
